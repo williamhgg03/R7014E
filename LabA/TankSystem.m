@@ -5,12 +5,13 @@ g = 981;
 K = 4;
 T = 35;
 h_0 = 3.2;
-df_u_0_At = 7.54; 
+df_u_0_At = 7.54;
+
 % equilibrium point
 h_10 = 8; 
 h_20 = 8;
 
-
+%System equation
 A = [-Ao*g*(1/(At*sqrt(2*g*(h_10+h_0)))) 0 ; 
     Ao*g*(1/(At*sqrt(2*g*(h_10+h_0)))) Ao*g*(-1/(At*sqrt(2*g*(h_20+h_0))))];
 B = [df_u_0_At/At; 0];
