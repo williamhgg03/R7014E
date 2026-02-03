@@ -21,4 +21,6 @@ D = 0;
 
 sys = ss(A,B,C,D);
 
+u_measured = [0 1 1.9 2.5];
+h_2_v_measured =[0 2.7 6.2 8.8];
 
