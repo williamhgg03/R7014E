@@ -5,7 +5,10 @@ g = 981;
 K = 4;
 T = 35;
 h_0 = 3.2;
+
+%some constants
 df_u_0_At = 7.54;
+Ts = 0.01;
 
 % equilibrium point
 h_10 = 8; 
@@ -21,6 +24,22 @@ D = 0;
 
 sys = ss(A,B,C,D);
 
+%Discrete system
+sys_d = c2d(sys,Ts);
+Ad = sys_d.A;
+Bd = sys_d.B;
+Cd = sys_d.C;
+Dd = sys_d.D;
+
+
+%Kalman Filter gain
+Q = [1e-4 0 
+     0    1e-4];
+R = 0.01;
+
+[K, P] = dlqe(Ad, eye(size(Ad)), Cd, Q, R);
+
+%Some mesurements
 u_measured = [0 1 1.9 2.5];
 h_2_v_measured =[0 2.7 6.2 8.8];
 
