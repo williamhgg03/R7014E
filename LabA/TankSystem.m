@@ -5,10 +5,11 @@ g = 981;
 K = 4;
 T = 35;
 h_0 = 3.2;
+u0 = 1.08;
 
 %some constants
 df_u_0_At = 7.54;
-Ts = 0.01;
+Ts = 0.1;
 
 % equilibrium point
 h_10 = 8; 
