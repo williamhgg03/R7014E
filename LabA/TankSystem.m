@@ -10,6 +10,7 @@ u0 = 1.07;
 % Some constants
 df_u_0_At = 7.1; % 7.54
 Ts = 0.02;
+Delay = 200; % in sec
 
 % Equilibrium point
 h_10 = 10; 
