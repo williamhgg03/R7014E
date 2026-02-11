@@ -10,7 +10,7 @@ u0 = 1.07;
 % Some constants
 df_u_0_At = 7.28; % 7.54
 Ts = 0.02;
-Delay = 200; % in sec
+Delay = 0; % in sec
 
 
 % Equilibrium point
@@ -35,7 +35,7 @@ Cd = sys_d.C;
 Dd = sys_d.D;
 
 % Measurment Disturbance
-Variance = 1e-6;
+Variance = 1e-4;
 
 % Kalman Filter gain
 Q = [Variance, 0; 
