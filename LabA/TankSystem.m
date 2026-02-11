@@ -5,7 +5,7 @@ g = 981;
 Gain = 4; % Used for linearization 
 T = 35;
 h_0 = 3.2;
-u0 = 1.07;
+u0 = 1.39;
 
 % Some constants
 df_u_0_At = 7.28; % 7.54
@@ -14,8 +14,9 @@ Delay = 200; % in sec
 
 
 % Equilibrium point
-h_10 = 10; 
-h_20 = 10;
+h_10 = 8; 
+h_20 = 8;
+x_hat_0 = [h_10; h_20];
 
 % System equation
 A = [(-Ao*g)/(At*sqrt(2*g*(h_10+h_0))) 0 ; 
@@ -35,7 +36,7 @@ Cd = sys_d.C;
 Dd = sys_d.D;
 
 % Measurment Disturbance
-Variance = 1e-6;
+Variance = 0;
 
 % Kalman Filter gain
 Q = [Variance, 0; 
