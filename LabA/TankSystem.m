@@ -10,7 +10,7 @@ u0 = 1.3937;
 % Some constants
 df_u_0_At = 7.54; % 7.28
 Ts = 0.02;
-Delay = 200; % in sec
+Delay = 0; % in sec
 
 
 % Equilibrium point
@@ -36,7 +36,7 @@ Cd = sys_d.C;
 Dd = sys_d.D;
 
 % Measurment Disturbance
-Variance = 0e-4;
+Variance = 1e-5;
 
 % Kalman Filter gain
 Q = [Variance, 0; 
@@ -51,3 +51,27 @@ h_1 =[2.5 3 3.5 4 4.5 5 5.5 6 6.5 7 7.5 8 8.5 9 9.5 10 10.5 11 11.5 12 12.5 13 1
 
 h_2_V = [0.75 1.03 1.47 1.85 2.22 2.61 2.93 3.35 3.72 4.09 4.49 4.88 5.21 5.62 6.00 6.33 6.75  7.13 7.50 7.94 8.29 8.65 9.03 9.38 9.77];
 h_2 =[3 3.5 4 4.5 5 5.5 6 6.5 7 7.5 8 8.5 9 9.5 10 10.5 11 11.5 12 12.5 13 13.5 14 14.5 15];
+
+% Estimation error at 12cm
+SKF_e_12 = 0.2437;
+NSKF_e_12 = 0.2437;
+EKF_e_12 = 0.0071;
+
+% Estimation error at 8cm
+SKF_e_8 = 0.007;
+NSKF_e_8 = 0.007;
+EKF_e_8 = 0.007;
+
+% Convergance Time - error 0.5% of step size 
+SKF_ct = 100;
+NSKF_ct = 100;
+EKF_ct = 0;
+
+% Bias at 12cm
+SKF_B_12 = 0.2439;
+NSKF_B_12 = 0.2439;
+EKF_B_12 = 0.0001;
+
+% Bias at 8 was 0
+
+
