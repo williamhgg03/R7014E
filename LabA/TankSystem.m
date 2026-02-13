@@ -5,43 +5,41 @@ g = 981;
 Gain = 4; % Used for linearization 
 T = 35;
 h_0 = 3.2;
-u0 = 1.3937;
-
-% Some constants
-df_u_0_At = 7.54; % 7.28
 Ts = 0.02;
-Delay = 200; % in sec
+Delay = 0; % in sec
 
 
 % Equilibrium point
+dq_0 = 7.28; % 7.54
+u_0 = 1.39364;
 h_10 = 8;
 h_20 = 8;
 x_hat_0 = [h_10; h_20];
+Al_0 = 0; 
 
 % System equation
-A = [(-Ao*g)/(At*sqrt(2*g*(h_10+h_0))) 0 ; 
-    (Ao*g)/(At*sqrt(2*g*(h_10+h_0))) (-Ao*g)/(At*sqrt(2*g*(h_20+h_0)))];
-B = [df_u_0_At/At; 0];
-N = eye(2);
+sqrt1 = sqrt(2*g*(h_10+h_0));
+sqrt2 = sqrt(2*g*(h_20+h_0));
+
+A = [-Ao*g/At/sqrt1, 0;
+     Ao*g/At/sqrt1, -Ao*g/At/sqrt2];
+B = [dq_0/At; 0];
 C = [0 1];
 D = 0;
 
-sys = ss(A,B,C,D);
-
 % Discrete system
-sys_d = c2d(sys,Ts);
-Ad = sys_d.A;
-Bd = sys_d.B;
-Cd = sys_d.C;
-Dd = sys_d.D;
+Ad = eye(size(A)) + Ts * A;
+Bd = Ts * B;
+Cd = C;
+Dd = D;
 
 % Measurment Disturbance
-Variance = 0e-4;
+Variance = 1e-5;
 
 % Kalman Filter gain
 Q = [Variance, 0; 
      0,    Variance];
-R = 0.01;
+R = 0.2;
 [K, P] = dlqe(Ad, eye(size(Ad)), Cd, Q, R);
 
 % Some mesurements
@@ -51,3 +49,23 @@ h_1 =[2.5 3 3.5 4 4.5 5 5.5 6 6.5 7 7.5 8 8.5 9 9.5 10 10.5 11 11.5 12 12.5 13 1
 
 h_2_V = [0.75 1.03 1.47 1.85 2.22 2.61 2.93 3.35 3.72 4.09 4.49 4.88 5.21 5.62 6.00 6.33 6.75  7.13 7.50 7.94 8.29 8.65 9.03 9.38 9.77];
 h_2 =[3 3.5 4 4.5 5 5.5 6 6.5 7 7.5 8 8.5 9 9.5 10 10.5 11 11.5 12 12.5 13 13.5 14 14.5 15];
+
+% Augmented system
+Aa = [-(Ao+Al_0)*g/At/sqrt1, 0,              -sqrt1/At;
+      Ao*g/At/sqrt1,         -Ao*g/At/sqrt2, 0;
+      0,                     0,              0];
+Ba = [dq_0/At; 0; 0];
+Ca = [0 1 0];
+Da = 0;
+
+% Discrete system
+Aad = eye(size(Aa)) + Ts * Aa;
+Bad = Ts * Ba;
+Cad = Ca;
+Dad = Da;
+
+% Kalman Filter gain with disturbance
+Q_dist = [Variance 0 0; 
+          0 Variance 0;
+          0 0 1e-7];
+[K_dist, P_dist] = dlqe(Aad, eye(size(Aad)), Cad, Q_dist, R);
