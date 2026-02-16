@@ -16,16 +16,16 @@ Delay = 16; % in sec
 % Equilibrium point
 dq_0 = 7.28; % 7.54
 u_0 = 1.39364;
-h_10 = 8;
-h_20 = 8;
+h_10 = 9.5;
+h_20 = 8.56;
 Al_0 = 0;
 
 x_0 = [h_10; h_20];
 x_0_dist = [h_10; h_20; Al_0];
 
 % Initial estimate
-sensor_16_sec_h1 = 4.75;
-sensor_16_sec_h2 = 2.1;
+sensor_16_sec_h1 = 4.8;
+sensor_16_sec_h2 = 2.4;
 x_hat_0 = [sensor_16_sec_h1; sensor_16_sec_h2];
 x_hat_0_dist = [sensor_16_sec_h1; sensor_16_sec_h2; Al_0];
 
