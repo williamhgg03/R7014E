@@ -76,7 +76,7 @@ Ba = [dq_0/At; 0; 0];
 Ca = [0 1 0];
 Da = 0;
 
-% Discrete system
+% Discrete Disturbance System 
 Aad = eye(size(Aa)) + Ts * Aa;
 Bad = Ts * Ba;
 Cad = Ca;
