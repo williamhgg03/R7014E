@@ -21,65 +21,77 @@ h3_init = 0;
 h4_init = 0;
 
 %% Operating Point Selection
-% Select P_minus variables for the linear model generation
-h10_minus = 12.3;
-h20_minus = 12.8;
-h30_minus = 1.6;
-h40_minus = 1.4;
+% Select P_M variables for the linear model generation
+h10_M = 12.3;
+h20_M = 12.8;
+h30_M = 1.6;
+h40_M = 1.4;
 
-h10_plus = 12.3;
-h20_plus = 12.8;
-h30_plus = 1.6;
-h40_plus = 1.4;
+h10_P = 12.3;
+h20_P = 12.8;
+h30_P = 1.6;
+h40_P = 1.4;
 
-k1_minus = 3.33;
-k2_minus = 3.35;
-gamma1_minus = 0.7;
-gamma2_minus = 0.6;
+k1_M = 3.33;
+k2_M = 3.35;
+gamma1_M = 0.7;
+gamma2_M = 0.6;
 
-k1_plus = 3.33;
-k2_plus = 3.35;
-gamma1_plus = 0.7;
-gamma2_plus = 0.6;
+k1_P = 3.14;
+k2_P = 3.29;
+gamma1_P = 0.43;
+gamma2_P = 0.34;
 %% Linear Model Generation (Task 1)
 % Calculate time constants T_i 
-T1_minus = (A1/a1) * sqrt(2 * h10_minus / g); 
-T2_minus = (A2/a2) * sqrt(2 * h20_minus / g);
-T3_minus = (A3/a3) * sqrt(2 * h30_minus / g);
-T4_minus = (A4/a4) * sqrt(2 * h40_minus / g); 
+T1_M = (A1/a1) * sqrt(2 * h10_M / g); 
+T2_M = (A2/a2) * sqrt(2 * h20_M / g);
+T3_M = (A3/a3) * sqrt(2 * h30_M / g);
+T4_M = (A4/a4) * sqrt(2 * h40_M / g); 
 
-T1_plus = (A1/a1) * sqrt(2 * h10_plus / g); 
-T2_plus = (A2/a2) * sqrt(2 * h20_plus / g);
-T3_plus = (A3/a3) * sqrt(2 * h30_plus / g);
-T4_plus = (A4/a4) * sqrt(2 * h40_plus / g); 
+T1_P = (A1/a1) * sqrt(2 * h10_P / g); 
+T2_P = (A2/a2) * sqrt(2 * h20_P / g);
+T3_P = (A3/a3) * sqrt(2 * h30_P / g);
+T4_P = (A4/a4) * sqrt(2 * h40_P / g); 
 
-c1_minus = (T1_minus * k1 * kc) / A1;
-c2_minus = (T2_minus * k2 * kc) / A2;
+c1_M = (T1_M * k1_M * kc) / A1;
+c2_M = (T2_M * k2_M * kc) / A2;
 
-c1_plus = (T1_plus * k1 * kc) / A1;
-c2_plus = (T2_plus * k2 * kc) / A2;
+c1_P = (T1_P * k1_P * kc) / A1;
+c2_P = (T2_P * k2_P * kc) / A2;
 
 s = tf('s');
 
 % Define Transfer Function Matrix G(s) based on Eq. 7 in the lab manual 
-G11 = (gamma1 * c1) / (T1*s + 1);
-G12 = ((1 - gamma2) * c1) / ((T1*s + 1) * (T3*s + 1)); 
-G21 = ((1 - gamma1) * c2) / ((T2*s + 1) * (T4*s + 1)); 
-G22 = (gamma2 * c2) / (T2*s + 1);
+G11_M = (gamma1_M * c1_M) / (T1_M*s + 1);
+G12_M = ((1 - gamma2_M) * c1_M) / ((T1_M*s + 1) * (T3_M*s + 1)); 
+G21_M = ((1 - gamma1_M) * c2_M) / ((T2_M*s + 1) * (T4_M*s + 1)); 
+G22_M = (gamma2_M * c2_M) / (T2_M*s + 1);
+
+G11_P = (gamma1_P * c1_P) / (T1_P*s + 1);
+G12_P = ((1 - gamma2_P) * c1_P) / ((T1_P*s + 1) * (T3_P*s + 1)); 
+G21_P = ((1 - gamma1_P) * c2_P) / ((T2_P*s + 1) * (T4_P*s + 1)); 
+G22_P = (gamma2_P * c2_P) / (T2_P*s + 1);
 
 % Combine into full MIMO transfer function
-G = [G11, G12;
-     G21, G22];
+G_M = [G11_M, G12_M;
+       G21_M, G22_M];
+
+G_P = [G11_P , G12_P; 
+       G21_P, G22_P];
 
 % Calculate Poles and Zeros
-sys_poles = pole(G);
-sys_zeros = tzero(G);
+sys_poles_M = pole(G_M);
+sys_zeros_M = tzero(G_M)
 
+sys_poles_P = pole(G_P);
+sys_zeros_P = tzero(G_P)
+
+
+
+% Task 2:
 %% Task 2: Calculate gamma1 and gamma2 for Minimum Phase (Numerical Sweep)
-
-% Create a grid of values for gamma1 and gamma2 between 0 and 1
 resolution = 0.02;
-gamma1_vec = 0.01:resolution:0.99; % Avoid exactly 0 or 1 to prevent division/matrix issues
+gamma1_vec = 0.01:resolution:0.99; 
 gamma2_vec = 0.01:resolution:0.99;
 
 [G1_grid, G2_grid] = meshgrid(gamma1_vec, gamma2_vec);
@@ -92,13 +104,12 @@ for i = 1:size(G1_grid, 1)
         g2_val = G2_grid(i, j);
         
         % Define G(s) for the current gamma pair
-        % (Assuming T1, T2, T3, T4, c1, c2, and 's' are already in the workspace)
-        G11_temp = (g1_val * c1) / (T1*s + 1);
-        G12_temp = ((1 - g2_val) * c1) / ((T1*s + 1) * (T3*s + 1));
+        G11_temp = (g1_val * c1_P) / (T1_P*s + 1);
+        G12_temp = ((1 - g2_val) * c1_P) / ((T1_P*s + 1) * (T3_P*s + 1));
         
         % Using the denominator from the PDF: (T2*s + 1)*(T1*s + 1)
-        G21_temp = ((1 - g1_val) * c2) / ((T2*s + 1) * (T1*s + 1)); 
-        G22_temp = (g2_val * c2) / (T2*s + 1);
+        G21_temp = ((1 - g1_val) * c2_P) / ((T2_P*s + 1) * (T1_P*s + 1)); 
+        G22_temp = (g2_val * c2_P) / (T2_P*s + 1);
         
         G_current = [G11_temp, G12_temp; 
                      G21_temp, G22_temp];
@@ -148,3 +159,6 @@ xlim([0 1]);
 ylim([0 1]);
 grid on;
 box on;
+
+
+%% Conclusion -> if sum(gamma1, gamma2) > 1 -> G is a minimum phase system.
