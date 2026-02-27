@@ -1,0 +1,80 @@
+%% System Parameters (Nominal)
+
+% [cm^2] Cross-section of tank 1-4 
+A1 = 28;    
+A3 = 28;    
+A2 = 32;    
+A4 = 32;   
+
+% [cm^2] Cross-section of the outlet hole 1-4 
+a1 = 0.071; 
+a3 = 0.071; 
+a2 = 0.057; 
+a4 = 0.057; 
+
+kc = 0.5;   % [V/cm] Sensor static gain 
+g = 982;    % [cm/s^2] Acceleration of gravity 
+
+% Tank water level initial values, tank 1-4
+h1_init = 0;
+h2_init = 0;
+h3_init = 0;
+h4_init = 0;
+
+%% Operating Point Selection
+% Select P_minus variables for the linear model generation
+h10_minus = 12.3;
+h20_minus = 12.8;
+h30_minus = 1.6;
+h40_minus = 1.4;
+
+h10_plus = 12.3;
+h20_plus = 12.8;
+h30_plus = 1.6;
+h40_plus = 1.4;
+
+k1_minus = 3.33;
+k2_minus = 3.35;
+gamma1_minus = 0.7;
+gamma2_minus = 0.6;
+
+k1_plus = 3.33;
+k2_plus = 3.35;
+gamma1_plus = 0.7;
+gamma2_plus = 0.6;
+%% Linear Model Generation (Task 1)
+% Calculate time constants T_i 
+T1_minus = (A1/a1) * sqrt(2 * h10_minus / g); 
+T2_minus = (A2/a2) * sqrt(2 * h20_minus / g);
+T3_minus = (A3/a3) * sqrt(2 * h30_minus / g);
+T4_minus = (A4/a4) * sqrt(2 * h40_minus / g); 
+
+T1_plus = (A1/a1) * sqrt(2 * h10_plus / g); 
+T2_plus = (A2/a2) * sqrt(2 * h20_plus / g);
+T3_plus = (A3/a3) * sqrt(2 * h30_plus / g);
+T4_plus = (A4/a4) * sqrt(2 * h40_plus / g); 
+
+c1_minus = (T1_minus * k1 * kc) / A1;
+c2_minus = (T2_minus * k2 * kc) / A2;
+
+c1_plus = (T1_plus * k1 * kc) / A1;
+c2_plus = (T2_plus * k2 * kc) / A2;
+
+s = tf('s');
+
+% Define Transfer Function Matrix G(s) based on Eq. 7 in the lab manual 
+G11 = (gamma1 * c1) / (T1*s + 1);
+G12 = ((1 - gamma2) * c1) / ((T1*s + 1) * (T3*s + 1));
+
+% NOTE: The lab manual writes (T1*s + 1) in the denominator for G21. 
+G21 = ((1 - gamma1) * c2) / ((T2*s + 1) * (T4*s + 1)); 
+
+G22 = (gamma2 * c2) / (T2*s + 1);
+
+% Combine into full MIMO transfer function
+G = [G11, G12;
+     G21, G22];
+
+disp('Linear Transfer Function Model G(s):');
+poles = pole(G);
+zeros = tzero(G);
