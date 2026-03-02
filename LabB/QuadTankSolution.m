@@ -13,6 +13,8 @@ a4 = 0.057;
 
 kc = 0.5;   % [V/cm] Sensor static gain 
 g = 982;    % [cm/s^2] Acceleration of gravity 
+Ts = 0.01;
+Delay = 0;
 
 % Tank water level initial values, tank 1-4
 h1_init = 0;
@@ -21,16 +23,19 @@ h3_init = 0;
 h4_init = 0;
 
 %% Operating Point Selection
-% Select P_M variables for the linear model generation
 h10_M = 12.3;
 h20_M = 12.8;
 h30_M = 1.6;
 h40_M = 1.4;
+u_10_M = 3;
+u_20_M = 3;
 
-h10_P = 12.3;
-h20_P = 12.8;
-h30_P = 1.6;
-h40_P = 1.4;
+h10_P = 12.6;
+h20_P = 13.0;
+h30_P = 4.8;
+h40_P = 4.9;
+u_10_P = 3.15;
+u_20_P = 3.15;
 
 k1_M = 3.33;
 k2_M = 3.35;
@@ -41,6 +46,13 @@ k1_P = 3.14;
 k2_P = 3.29;
 gamma1_P = 0.43;
 gamma2_P = 0.34;
+
+gamma1 = gamma1_M;
+gamma2 = gamma2_M;
+
+k1 = k1_M;
+k2 = k2_M;
+
 %% Linear Model Generation (Task 1)
 % Calculate time constants T_i 
 T1_M = (A1/a1) * sqrt(2 * h10_M / g); 
@@ -74,91 +86,51 @@ G22_P = (gamma2_P * c2_P) / (T2_P*s + 1);
 
 % Combine into full MIMO transfer function
 G_M = [G11_M, G12_M;
-       G21_M, G22_M];
+       G21_M, G22_M]
 
 G_P = [G11_P , G12_P; 
        G21_P, G22_P];
 
 % Calculate Poles and Zeros
 sys_poles_M = pole(G_M);
-sys_zeros_M = tzero(G_M)
+sys_zeros_M = tzero(G_M);
 
 sys_poles_P = pole(G_P);
-sys_zeros_P = tzero(G_P)
-
+sys_zeros_P = tzero(G_P);
 
 
 % Task 2:
-%% Task 2: Calculate gamma1 and gamma2 for Minimum Phase (Numerical Sweep)
-resolution = 0.02;
-gamma1_vec = 0.01:resolution:0.99; 
-gamma2_vec = 0.01:resolution:0.99;
-
-[G1_grid, G2_grid] = meshgrid(gamma1_vec, gamma2_vec);
-MinPhaseRegion = zeros(size(G1_grid));
-
-% Loop through all combinations
-for i = 1:size(G1_grid, 1)
-    for j = 1:size(G1_grid, 2)
-        g1_val = G1_grid(i, j);
-        g2_val = G2_grid(i, j);
-        
-        % Define G(s) for the current gamma pair
-        G11_temp = (g1_val * c1_P) / (T1_P*s + 1);
-        G12_temp = ((1 - g2_val) * c1_P) / ((T1_P*s + 1) * (T3_P*s + 1));
-        
-        % Using the denominator from the PDF: (T2*s + 1)*(T1*s + 1)
-        G21_temp = ((1 - g1_val) * c2_P) / ((T2_P*s + 1) * (T1_P*s + 1)); 
-        G22_temp = (g2_val * c2_P) / (T2_P*s + 1);
-        
-        G_current = [G11_temp, G12_temp; 
-                     G21_temp, G22_temp];
-        
-        % Calculate transmission zeros
-        z = tzero(G_current);
-        
-        % Check if all zeros are in the Left Half-Plane (LHP)
-        if isempty(z)
-            MinPhaseRegion(i, j) = 1; 
-        elseif max(real(z)) < 0
-            % Minimum phase (all zeros have negative real parts)
-            MinPhaseRegion(i, j) = 1;
-        else
-            % Non-minimum phase (at least one zero has positive real part)
-            MinPhaseRegion(i, j) = 0;
-        end
-    end
-end
-
-%% Plotting the Results
-figure;
-hold on;
-
-% Plot the regions
-% Green for Minimum Phase (1), Red for Non-Minimum Phase (0)
-pcolor(G1_grid, G2_grid, MinPhaseRegion);
-shading flat;
-colormap([1 0.8 0.8; 0.8 1 0.8]); 
-
-% Draw the theoretical boundary line: gamma1 + gamma2 = 1
-plot([0 1], [1 0], 'k--', 'LineWidth', 2);
-
-% Plot the P_minus operating point from the lab manual 
-plot(0.70, 0.60, 'bo', 'MarkerFaceColor', 'b', 'MarkerSize', 8); % 
-text(0.72, 0.62, 'P_- (Min Phase)', 'FontSize', 11, 'FontWeight', 'bold');
-
-% Plot the P_plus operating point from the lab manual
-plot(0.43, 0.34, 'rx', 'MarkerSize', 10, 'LineWidth', 3); % 
-text(0.45, 0.36, 'P_+ (Non-Min Phase)', 'FontSize', 11, 'FontWeight', 'bold');
-
-% Formatting
-xlabel('\gamma_1');
-ylabel('\gamma_2');
-title('System Phase Behavior based on Flow Split Ratios');
-xlim([0 1]);
-ylim([0 1]);
-grid on;
-box on;
-
+%Task_2_plots
 
 %% Conclusion -> if sum(gamma1, gamma2) > 1 -> G is a minimum phase system.
+% Task 3
+G11_num = cell2mat(G11_M.Numerator);
+G11_den = cell2mat(G11_M.Denominator);
+G11_inv = inv(G11_M);
+lambda = 8;
+Q11 = G11_inv/(lambda*s + 1)^2;
+Q11_num = cell2mat(Q11.Numerator);
+Q11_den = cell2mat(Q11.Denominator);
+
+G22_num = cell2mat(G22_M.Numerator);
+G22_den = cell2mat(G22_M.Denominator);
+G22_inv = inv(G22_M);
+lambda = 8;
+Q22 = G22_inv/(lambda*s + 1)^2;
+Q22_num = cell2mat(Q22.Numerator);
+Q22_den = cell2mat(Q22.Denominator);
+
+%Task 4:
+
+G_M_ss = ss(G_M);
+A_size = size(G_M_ss.A);
+B_size = size(G_M_ss.B);
+C_size = size(G_M_ss.C);
+Aa = [G_M_ss.A zeros(C_size(2), C_size(1));
+     -G_M_ss.C zeros(C_size(1), C_size(1))];
+Ba = [G_M_ss.B ; zeros(C_size(1), B_size(2))];
+Ca = [G_M_ss.C, zeros(C_size(1), C_size(1))];
+
+Q = eye(8);
+R = 1;
+Ka = lqr(ss(Aa,Ba,Ca,G_M_ss.D), Q, R);
