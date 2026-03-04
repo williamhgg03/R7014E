@@ -99,11 +99,11 @@ sys_poles_P = pole(G_P);
 sys_zeros_P = tzero(G_P);
 
 
-% Task 2:
+%% Task 2:
 %Task_2_plots
+% Conclusion -> if sum(gamma1, gamma2) > 1 -> G is a minimum phase system.
 
-%% Conclusion -> if sum(gamma1, gamma2) > 1 -> G is a minimum phase system.
-% Task 3
+%% Task 3
 G11_num = cell2mat(G11_M.Numerator);
 G11_den = cell2mat(G11_M.Denominator);
 G11_inv = inv(G11_M);
@@ -120,7 +120,7 @@ Q22 = G22_inv/(lambda*s + 1)^2;
 Q22_num = cell2mat(Q22.Numerator);
 Q22_den = cell2mat(Q22.Denominator);
 
-%Task 4:
+%% Task 4:
 
 G_M_ss = ss(G_M);
 A_size = size(G_M_ss.A);
