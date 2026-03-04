@@ -16,13 +16,7 @@ g = 982;    % [cm/s^2] Acceleration of gravity
 Ts = 0.01;
 Delay = 0;
 
-% Tank water level initial values, tank 1-4
-h1_init = 0;
-h2_init = 0;
-h3_init = 0;
-h4_init = 0;
-
-%% Operating Point Selection
+% Operating Point Selection
 h10_M = 12.3;
 h20_M = 12.8;
 h30_M = 1.6;
@@ -30,17 +24,17 @@ h40_M = 1.4;
 u_10_M = 3;
 u_20_M = 3;
 
+k1_M = 3.33;
+k2_M = 3.35;
+gamma1_M = 0.7;
+gamma2_M = 0.6;
+
 h10_P = 12.6;
 h20_P = 13.0;
 h30_P = 4.8;
 h40_P = 4.9;
 u_10_P = 3.15;
 u_20_P = 3.15;
-
-k1_M = 3.33;
-k2_M = 3.35;
-gamma1_M = 0.7;
-gamma2_M = 0.6;
 
 k1_P = 3.14;
 k2_P = 3.29;
@@ -52,6 +46,12 @@ gamma2 = gamma2_M;
 
 k1 = k1_M;
 k2 = k2_M;
+
+%% Tank water level initial values, tank 1-4
+h1_init = h10_M;
+h2_init = h20_M;
+h3_init = h30_M;
+h4_init = h40_M;
 
 %% Linear Model Generation (Task 1)
 % Calculate time constants T_i 
@@ -103,11 +103,11 @@ sys_zeros_P = tzero(G_P);
 %Task_2_plots
 % Conclusion -> if sum(gamma1, gamma2) > 1 -> G is a minimum phase system.
 
-%% Task 3
+%% Task 3: IMC
 G11_num = cell2mat(G11_M.Numerator);
 G11_den = cell2mat(G11_M.Denominator);
 G11_inv = inv(G11_M);
-lambda = 8;
+lambda = 3;
 Q11 = G11_inv/(lambda*s + 1)^2;
 Q11_num = cell2mat(Q11.Numerator);
 Q11_den = cell2mat(Q11.Denominator);
@@ -115,22 +115,98 @@ Q11_den = cell2mat(Q11.Denominator);
 G22_num = cell2mat(G22_M.Numerator);
 G22_den = cell2mat(G22_M.Denominator);
 G22_inv = inv(G22_M);
-lambda = 8;
+lambda = 3;
 Q22 = G22_inv/(lambda*s + 1)^2;
 Q22_num = cell2mat(Q22.Numerator);
 Q22_den = cell2mat(Q22.Denominator);
 
-%% Task 4:
+F_r_tilde_num = 1;
+F_r_tilde_den = 1;
 
-G_M_ss = ss(G_M);
-A_size = size(G_M_ss.A);
-B_size = size(G_M_ss.B);
-C_size = size(G_M_ss.C);
-Aa = [G_M_ss.A zeros(C_size(2), C_size(1));
-     -G_M_ss.C zeros(C_size(1), C_size(1))];
-Ba = [G_M_ss.B ; zeros(C_size(1), B_size(2))];
-Ca = [G_M_ss.C, zeros(C_size(1), C_size(1))];
+%% Task 4: LQG
 
-Q = eye(8);
-R = 1;
-Ka = lqr(ss(Aa,Ba,Ca,G_M_ss.D), Q, R);
+% Calculate State Jacobian Matrix (A)
+A = zeros(4, 4);
+
+sq1 = sqrt(g / (2 * h10_M));
+sq2 = sqrt(g / (2 * h20_M));
+sq3 = sqrt(g / (2 * h30_M));
+sq4 = sqrt(g / (2 * h40_M));
+
+A(1,1) = -(a1 / A1) * sq1;
+A(1,3) =  (a3 / A3) * sq3;
+A(2,2) = -(a2 / A2) * sq2;
+A(2,4) =  (a4 / A4) * sq4;
+A(3,3) = -(a3 / A3) * sq3;
+A(4,4) = -(a4 / A4) * sq4;
+
+% Calculate Input Jacobian Matrix (B)
+B = zeros(4, 2);
+
+B(1,1) = (gamma1 * k1) / A1;
+B(2,2) = (gamma2 * k2) / A2;
+B(3,2) = ((1 - gamma2) * k2) / A3;
+B(4,1) = ((1 - gamma1) * k1) / A4;
+
+C = [1 0 0 0;
+     0 1 0 0];
+M = C;
+
+Q1 = eye(2) * 1;
+Q2 = eye(2) * 1;
+
+% Solve CARE using icare
+Q = M' * Q1 * M;   % Construct Q
+R = Q2;            % R matrix
+[S, ~, ~, ~] = icare(A, B, Q, R);
+
+% Feedback gains
+L = Q2\B'*S
+Lr = inv(M*inv(B*L - A)*B)
+
+%% Task 5: Performance analysis
+
+%% Task 6: Robustness analysis
+
+h10_i = 12.3;
+h20_i = 12.8;
+h30_i = 1.6;
+h40_i = 1.4;
+u_10_i = 3;
+u_20_i = 3;
+k1_i = 3.33;
+k2_i = 3.35;
+
+figure;
+for i = 1:1000
+    a1_i = a1 * (1 + 0.2 * (rand - 0.5));
+    a2_i = a2 * (1 + 0.2 * (rand - 0.5));
+    gamma1_i = 0.56 + (0.7 - 0.56) * rand;
+    gamma2_i = 0.48 + (0.6 - 0.48) * rand;
+
+    % Calculate time constants T_i
+    T1_i = (A1/a1_i) * sqrt(2 * h10_i / g); 
+    T2_i = (A2/a2_i) * sqrt(2 * h20_i / g);
+    T3_i = (A3/a3) * sqrt(2 * h30_i / g);
+    T4_i = (A4/a4) * sqrt(2 * h40_i / g); 
+    
+    c1_i = (T1_i * k1_i * kc) / A1;
+    c2_i = (T2_i * k2_i * kc) / A2;
+
+    G11_0_i = (gamma1_i * c1_i) / (T1_i*s + 1);
+    delta_G = (G11_0_i - G11_M) / G11_M;
+    [m, p, w] = bode(delta_G, {0.0001, 1});
+    m = squeeze(m);
+    loglog(w, m, 'b-'); hold on;
+end
+xlabel('\omega [rad/s]');
+ylabel('|\Delta_{G11}|');
+hold off;
+
+
+
+% G12_0_i = ((1 - gamma2_i) * c1_i) / ((T1_i*s + 1) * (T3_i*s + 1)); 
+% G21_0_i = ((1 - gamma1_i) * c2_i) / ((T2_i*s + 1) * (T4_i*s + 1)); 
+% G22_0_i = (gamma2_i * c2_i) / (T2_i*s + 1);
+% 
+
