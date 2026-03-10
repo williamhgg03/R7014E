@@ -177,8 +177,50 @@ u_20_i = 3;
 k1_i = 3.33;
 k2_i = 3.35;
 
+% G11
+w = logspace(-4,0,50);      % frequency grid
+l_I11 = zeros(size(w));    % max amplitude at each frequency
+
+for i = 1:10000
+    a1_i = a1 * (1 + 0.2 * (rand - 0.5));
+    a2_i = a2 * (1 + 0.2 * (rand - 0.5));
+    gamma1_i = 0.56 + (0.7 - 0.56) * rand;
+    gamma2_i = 0.48 + (0.6 - 0.48) * rand;
+
+    % Time constants
+    T1_i = (A1/a1_i) * sqrt(2 * h10_i / g); 
+    T2_i = (A2/a2_i) * sqrt(2 * h20_i / g);
+    T3_i = (A3/a3) * sqrt(2 * h30_i / g);
+    T4_i = (A4/a4) * sqrt(2 * h40_i / g); 
+
+    c1_i = (T1_i * k1_i * kc) / A1;
+    c2_i = (T2_i * k2_i * kc) / A2;
+
+    G11_0_i = (gamma1_i * c1_i) / (T1_i*s + 1);
+    deltaG = (G11_0_i - G11_M) / G11_M;
+
+    [m, ~, ~] = bode(deltaG, w);
+    m = squeeze(m);
+
+    l_I11 = max(l_I11, m');   % update max at each frequency
+end
+
 figure;
-for i = 1:1000
+loglog(w, l_I11, 'b', 'LineWidth', 2); hold on;
+xlabel('\omega [rad/s]');
+ylabel('|l_{I11}(i\omega)| (blue), |w_{I11}(i\omega)| (red)');
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
+grid on;
+
+w_I11 = 0.273 / (s/0.019 + 1) * (s/0.0256 + 1);
+[m, ~, ~] = bode(w_I11, w);
+m = squeeze(m);
+loglog(w, m, 'r-', 'LineWidth', 2); hold off;
+
+% G12
+l_I12 = zeros(size(w));
+
+for i = 1:10000
     a1_i = a1 * (1 + 0.2 * (rand - 0.5));
     a2_i = a2 * (1 + 0.2 * (rand - 0.5));
     gamma1_i = 0.56 + (0.7 - 0.56) * rand;
@@ -189,24 +231,129 @@ for i = 1:1000
     T2_i = (A2/a2_i) * sqrt(2 * h20_i / g);
     T3_i = (A3/a3) * sqrt(2 * h30_i / g);
     T4_i = (A4/a4) * sqrt(2 * h40_i / g); 
-    
+
     c1_i = (T1_i * k1_i * kc) / A1;
     c2_i = (T2_i * k2_i * kc) / A2;
 
-    G11_0_i = (gamma1_i * c1_i) / (T1_i*s + 1);
-    delta_G = (G11_0_i - G11_M) / G11_M;
-    [m, p, w] = bode(delta_G, {0.0001, 1});
+    G12_0_i = ((1 - gamma2_i) * c1_i) / ((T1_i*s + 1) * (T3_i*s + 1)); 
+    deltaG = (G12_0_i - G12_M) / G12_M;
+    
+    [m, ~, ~] = bode(deltaG, w);
     m = squeeze(m);
-    loglog(w, m, 'b-'); hold on;
+
+    l_I12 = max(l_I12, m');
 end
+
+figure;
+loglog(w, l_I12, 'b', 'LineWidth', 2); hold on;
 xlabel('\omega [rad/s]');
-ylabel('|\Delta_{G11}|');
+ylabel('|l_{I12}(i\omega)| (blue), |w_{I12}(i\omega)| (red)');
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
+grid on;
+
+w_I12 = 0.445 / (s/0.0172 + 1) * (s/0.0252 + 1);
+[m, ~, ~] = bode(w_I12, w);
+m = squeeze(m);
+loglog(w, m, 'r-', 'LineWidth', 2); hold off;
+
+% G21
+l_I21 = zeros(size(w));
+
+for i = 1:10000
+    a1_i = a1 * (1 + 0.2 * (rand - 0.5));
+    a2_i = a2 * (1 + 0.2 * (rand - 0.5));
+    gamma1_i = 0.56 + (0.7 - 0.56) * rand;
+    gamma2_i = 0.48 + (0.6 - 0.48) * rand;
+
+    % Calculate time constants T_i
+    T1_i = (A1/a1_i) * sqrt(2 * h10_i / g); 
+    T2_i = (A2/a2_i) * sqrt(2 * h20_i / g);
+    T3_i = (A3/a3) * sqrt(2 * h30_i / g);
+    T4_i = (A4/a4) * sqrt(2 * h40_i / g); 
+
+    c1_i = (T1_i * k1_i * kc) / A1;
+    c2_i = (T2_i * k2_i * kc) / A2;
+
+    G21_0_i = ((1 - gamma1_i) * c2_i) / ((T2_i*s + 1) * (T4_i*s + 1));
+    deltaG = (G21_0_i - G21_M) / G21_M;
+    [m, ~, ~] = bode(deltaG, w);
+    m = squeeze(m);
+
+    l_I21 = max(l_I21, m');
+end
+
+figure;
+loglog(w, l_I21, 'b-', 'LineWidth', 2); hold on;
+xlabel('\omega [rad/s]');
+ylabel('|l_{I21}(i\omega)| (blue), |w_{I21}(i\omega)| (red)');
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
+grid on;
+
+w21 = 0.63 / (s/0.0135 + 1) * (s/0.018 + 1);
+[m, ~, ~] = bode(w21, w);
+m = squeeze(m);
+loglog(w, m, 'r-', 'LineWidth', 2);
+
 hold off;
 
+% G22
+l_I22 = zeros(size(w));
+
+for i = 1:10000
+    a1_i = a1 * (1 + 0.2 * (rand - 0.5));
+    a2_i = a2 * (1 + 0.2 * (rand - 0.5));
+    gamma1_i = 0.56 + (0.7 - 0.56) * rand;
+    gamma2_i = 0.48 + (0.6 - 0.48) * rand;
+
+    % Calculate time constants T_i
+    T1_i = (A1/a1_i) * sqrt(2 * h10_i / g); 
+    T2_i = (A2/a2_i) * sqrt(2 * h20_i / g);
+    T3_i = (A3/a3) * sqrt(2 * h30_i / g);
+    T4_i = (A4/a4) * sqrt(2 * h40_i / g); 
+
+    c1_i = (T1_i * k1_i * kc) / A1;
+    c2_i = (T2_i * k2_i * kc) / A2;
+
+    G22_0_i = (gamma2_i * c2_i) / (T2_i*s + 1);
+    deltaG = (G22_0_i - G22_M) / G22_M;
+    [m, p, w] = bode(deltaG, w);
+    m = squeeze(m);
+
+    l_I22 = max(l_I22, m');
+end
+
+figure;
+loglog(w, l_I22, 'b-', 'LineWidth', 2); hold on;
+xlabel('\omega [rad/s]');
+ylabel('|l_{I22}(i\omega)| (blue), |w_{I22}(i\omega)| (red)');
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
+grid on;
+
+w_I22 = 0.275 / (s/0.014 + 1) * (s/0.019 + 1);
+[m, ~, ~] = bode(w_I22, w);
+m = squeeze(m);
+loglog(w, m, 'r-', 'LineWidth', 2); hold off;
+
+% io(1) = linio('R7014E_QuadTankSim_LQG/Mux5', 1, 'input');
+% io(2) = linio('R7014E_QuadTankSim_LQG/Sum4', 1, 'output');
+% S = tf(linearize('R7014E_QuadTankSim_LQG', io));
 
 
-% G12_0_i = ((1 - gamma2_i) * c1_i) / ((T1_i*s + 1) * (T3_i*s + 1)); 
-% G21_0_i = ((1 - gamma1_i) * c2_i) / ((T2_i*s + 1) * (T4_i*s + 1)); 
-% G22_0_i = (gamma2_i * c2_i) / (T2_i*s + 1);
+
+% deltaG = [deltaG11, deltaG12;
+%           deltaG21, deltaG22];
 % 
-
+% io(1) = linio('R7014E_QuadTankSim_LQG/Mux4', 1, 'input')  % y
+% io(2) = linio('R7014E_QuadTankSim_LQG/Sum4', 1, 'output') % u
+% F_y = linearize('R7014E_QuadTankSim_LQG', io);
+% 
+% io(1) = linio('R7014E_QuadTankSim_LQG/Sum4', 1, 'input')
+% io(2) = linio('R7014E_QuadTankSim_LQG/Mux4', 1, 'output')
+% G = linearize('R7014E_QuadTankSim_LQG', io);
+% 
+% L = G * F_y;
+% T = feedback(L, eye(size(L)));
+% T = d2c(T, 'tustin');
+% 
+% figure;
+% sigma(deltaG * T);
