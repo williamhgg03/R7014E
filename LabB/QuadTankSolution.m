@@ -177,11 +177,21 @@ u_20_i = 3;
 k1_i = 3.33;
 k2_i = 3.35;
 
-% G11
-w = logspace(-4,0,50);      % frequency grid
-l_I11 = zeros(size(w));    % max amplitude at each frequency
+w_I11 = 0.273 / (s/0.0175 + 1) * (s/0.0237 + 1);
+w_I12 = 0.444 / (s/0.015 + 1) * (s/0.0221 + 1);
+w_I21 = 0.63 / (s/0.010 + 1) * (s/0.01341 + 1);
+w_I22 = 0.2723 / (s/0.0125 + 1) * (s/0.01697 + 1);
 
-for i = 1:10000
+% l_I11 = zeros(size(w));
+% l_I12 = zeros(size(w));
+% l_I21 = zeros(size(w));
+% l_I22 = zeros(size(w));
+
+w = logspace(-4,0,50);      % frequency grid
+num_deltaG = 300;
+
+% G11
+for i = 1:num_deltaG
     a1_i = a1 * (1 + 0.2 * (rand - 0.5));
     a2_i = a2 * (1 + 0.2 * (rand - 0.5));
     gamma1_i = 0.56 + (0.7 - 0.56) * rand;
@@ -212,15 +222,12 @@ ylabel('|l_{I11}(i\omega)| (blue), |w_{I11}(i\omega)| (red)');
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
 grid on;
 
-w_I11 = 0.273 / (s/0.019 + 1) * (s/0.0256 + 1);
 [m, ~, ~] = bode(w_I11, w);
 m = squeeze(m);
 loglog(w, m, 'r-', 'LineWidth', 2); hold off;
 
 % G12
-l_I12 = zeros(size(w));
-
-for i = 1:10000
+for i = 1:num_deltaG
     a1_i = a1 * (1 + 0.2 * (rand - 0.5));
     a2_i = a2 * (1 + 0.2 * (rand - 0.5));
     gamma1_i = 0.56 + (0.7 - 0.56) * rand;
@@ -237,7 +244,7 @@ for i = 1:10000
 
     G12_0_i = ((1 - gamma2_i) * c1_i) / ((T1_i*s + 1) * (T3_i*s + 1)); 
     deltaG = (G12_0_i - G12_M) / G12_M;
-    
+
     [m, ~, ~] = bode(deltaG, w);
     m = squeeze(m);
 
@@ -251,15 +258,12 @@ ylabel('|l_{I12}(i\omega)| (blue), |w_{I12}(i\omega)| (red)');
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
 grid on;
 
-w_I12 = 0.445 / (s/0.0172 + 1) * (s/0.0252 + 1);
 [m, ~, ~] = bode(w_I12, w);
 m = squeeze(m);
 loglog(w, m, 'r-', 'LineWidth', 2); hold off;
 
 % G21
-l_I21 = zeros(size(w));
-
-for i = 1:10000
+for i = 1:num_deltaG
     a1_i = a1 * (1 + 0.2 * (rand - 0.5));
     a2_i = a2 * (1 + 0.2 * (rand - 0.5));
     gamma1_i = 0.56 + (0.7 - 0.56) * rand;
@@ -289,17 +293,14 @@ ylabel('|l_{I21}(i\omega)| (blue), |w_{I21}(i\omega)| (red)');
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
 grid on;
 
-w21 = 0.63 / (s/0.0135 + 1) * (s/0.018 + 1);
-[m, ~, ~] = bode(w21, w);
+[m, ~, ~] = bode(w_I21, w);
 m = squeeze(m);
 loglog(w, m, 'r-', 'LineWidth', 2);
 
 hold off;
 
 % G22
-l_I22 = zeros(size(w));
-
-for i = 1:10000
+for i = 1:num_deltaG
     a1_i = a1 * (1 + 0.2 * (rand - 0.5));
     a2_i = a2 * (1 + 0.2 * (rand - 0.5));
     gamma1_i = 0.56 + (0.7 - 0.56) * rand;
@@ -329,31 +330,25 @@ ylabel('|l_{I22}(i\omega)| (blue), |w_{I22}(i\omega)| (red)');
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
 grid on;
 
-w_I22 = 0.275 / (s/0.014 + 1) * (s/0.019 + 1);
 [m, ~, ~] = bode(w_I22, w);
 m = squeeze(m);
 loglog(w, m, 'r-', 'LineWidth', 2); hold off;
 
-% io(1) = linio('R7014E_QuadTankSim_LQG/Mux5', 1, 'input');
-% io(2) = linio('R7014E_QuadTankSim_LQG/Sum4', 1, 'output');
-% S = tf(linearize('R7014E_QuadTankSim_LQG', io));
+w_I = [w_I11, w_I12;
+       w_I21, w_I22];
 
+io(1) = linio('R7014E_QuadTankSim_LQG/Mux5', 1, 'input'); % r
+io(2) = linio('R7014E_QuadTankSim_LQG/Mux4', 1, 'output'); % y
+T = linearize('R7014E_QuadTankSim_LQG', io);
 
+T = d2c(T, 'tustin');
 
-% deltaG = [deltaG11, deltaG12;
-%           deltaG21, deltaG22];
-% 
-% io(1) = linio('R7014E_QuadTankSim_LQG/Mux4', 1, 'input')  % y
-% io(2) = linio('R7014E_QuadTankSim_LQG/Sum4', 1, 'output') % u
-% F_y = linearize('R7014E_QuadTankSim_LQG', io);
-% 
-% io(1) = linio('R7014E_QuadTankSim_LQG/Sum4', 1, 'input')
-% io(2) = linio('R7014E_QuadTankSim_LQG/Mux4', 1, 'output')
-% G = linearize('R7014E_QuadTankSim_LQG', io);
-% 
-% L = G * F_y;
-% T = feedback(L, eye(size(L)));
-% T = d2c(T, 'tustin');
-% 
-% figure;
-% sigma(deltaG * T);
+[s, w] = sigma(w_I * T);
+
+figure;
+s1 = squeeze(s(1,:,:))
+loglog(w, s1, 'LineWidth', 2)
+xlabel('\omega (rad/s)')
+ylabel('\sigma_{max}(w_I(i\omega)T(i\omega))')
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
+grid on
