@@ -86,7 +86,7 @@ G22_P = (gamma2_P * c2_P) / (T2_P*s + 1);
 
 % Combine into full MIMO transfer function
 G_M = [G11_M, G12_M;
-       G21_M, G22_M]
+       G21_M, G22_M];
 
 G_P = [G11_P , G12_P; 
        G21_P, G22_P];
@@ -107,7 +107,9 @@ sys_zeros_P = tzero(G_P);
 G11_num = cell2mat(G11_M.Numerator);
 G11_den = cell2mat(G11_M.Denominator);
 G11_inv = inv(G11_M);
+
 lambda = 3;
+
 Q11 = G11_inv/(lambda*s + 1)^2;
 Q11_num = cell2mat(Q11.Numerator);
 Q11_den = cell2mat(Q11.Denominator);
@@ -115,7 +117,9 @@ Q11_den = cell2mat(Q11.Denominator);
 G22_num = cell2mat(G22_M.Numerator);
 G22_den = cell2mat(G22_M.Denominator);
 G22_inv = inv(G22_M);
+
 lambda = 3;
+
 Q22 = G22_inv/(lambda*s + 1)^2;
 Q22_num = cell2mat(Q22.Numerator);
 Q22_den = cell2mat(Q22.Denominator);
