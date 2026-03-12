@@ -154,21 +154,21 @@ B(4,1) = ((1 - gamma1) * k1) / A4;
 
 C = [1 0 0 0;
      0 1 0 0];
-M = C;
+M = eye(4);
 
-Q1 = eye(2) * 1;
-Q2 = eye(2) * 1;
+Q1 = diag([3.5, 2.5, 1000, 1000]);
+Q2 = diag([30, 20]);
 
 % Solve CARE using icare
-Q = M' * Q1 * M;   % Construct Q
-R = Q2;            % R matrix
-[S, ~, ~, ~] = icare(A, B, Q, R);
+[S, ~, ~, ~] = icare(A, B, M'*Q1*M, Q2);
 
 % Feedback gains
 L = Q2\B'*S
-Lr = inv(M*inv(B*L - A)*B)
+Lr = inv(C*inv(B*L - A)*B)
 
 %% Task 5: Performance analysis
+
+% Look at grahs idiot
 
 %% Task 6: Robustness analysis
 
@@ -186,13 +186,13 @@ w_I12 = 0.444 / (s/0.015 + 1) * (s/0.0221 + 1);
 w_I21 = 0.63 / (s/0.010 + 1) * (s/0.01341 + 1);
 w_I22 = 0.2723 / (s/0.0125 + 1) * (s/0.01697 + 1);
 
-% l_I11 = zeros(size(w));
-% l_I12 = zeros(size(w));
-% l_I21 = zeros(size(w));
-% l_I22 = zeros(size(w));
+l_I11 = zeros(size(w));
+l_I12 = zeros(size(w));
+l_I21 = zeros(size(w));
+l_I22 = zeros(size(w));
 
 w = logspace(-4,0,50);      % frequency grid
-num_deltaG = 300;
+num_deltaG = 3;
 
 % G11
 for i = 1:num_deltaG
@@ -350,9 +350,12 @@ T = d2c(T, 'tustin');
 [s, w] = sigma(w_I * T);
 
 figure;
-s1 = squeeze(s(1,:,:))
-loglog(w, s1, 'LineWidth', 2)
+s1 = squeeze(s(1,:,:));
+loglog(w, s1, 'b-', 'LineWidth', 2); hold on;
+loglog(w, ones(size(w)), 'r-', 'LineWidth', 2); hold off;
 xlabel('\omega (rad/s)')
 ylabel('\sigma_{max}(w_I(i\omega)T(i\omega))')
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
 grid on
+
+max(h_hat1+h_0, 0)
