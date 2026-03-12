@@ -71,13 +71,25 @@ Cd = C;
 Dd = D;
 
 % Measurment Disturbance
-variance = 1e-5;
+%variance = 1e-5; % real
+variance = 1e-8; % fake
 disturbance_variance = 1e1;
 
 % Kalman Filter gain with disturbance
 Q = [variance 0 0; 
      0 variance 0;
      0 0 disturbance_variance];
-R = 1e1 * disturbance_variance / variance;
+%R = 1e1 * disturbance_variance / variance;
+R = 0.1;
 
 % [K_dist, P_dist] = dlqe(Ad, eye(size(Ad)), Cd, Q, R);
+
+% PID gains
+zeta = 0.4;
+T_s_ol = 300;
+T_s_cl = T_s_ol/10;
+omega_n = 4/(zeta*T_s_cl);
+
+Kp = omega_n^2;
+Ki = 0.00005;
+Kd = 2*omega_n;
