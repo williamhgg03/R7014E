@@ -186,12 +186,13 @@ w_I12 = 0.444 / (s/0.015 + 1) * (s/0.0221 + 1);
 w_I21 = 0.63 / (s/0.010 + 1) * (s/0.01341 + 1);
 w_I22 = 0.2723 / (s/0.0125 + 1) * (s/0.01697 + 1);
 
+w = logspace(-4,0,50);      % frequency grid
+
 l_I11 = zeros(size(w));
 l_I12 = zeros(size(w));
 l_I21 = zeros(size(w));
 l_I22 = zeros(size(w));
 
-w = logspace(-4,0,50);      % frequency grid
 num_deltaG = 3;
 
 % G11
