@@ -104,3 +104,8 @@ N = 1;
 
 % ref input
 tau = T_s_cl/2;
+
+% sliding surface
+sliding_surface = 
+sliding_coefficient_matrix = [2; 1];
+
