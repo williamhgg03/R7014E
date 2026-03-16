@@ -186,12 +186,13 @@ w_I12 = 0.444 / (s/0.015 + 1) * (s/0.0221 + 1);
 w_I21 = 0.63 / (s/0.010 + 1) * (s/0.01341 + 1);
 w_I22 = 0.2723 / (s/0.0125 + 1) * (s/0.01697 + 1);
 
+w = logspace(-4,0,50);      % frequency grid
+
 l_I11 = zeros(size(w));
 l_I12 = zeros(size(w));
 l_I21 = zeros(size(w));
 l_I22 = zeros(size(w));
 
-w = logspace(-4,0,50);      % frequency grid
 num_deltaG = 3;
 
 % G11
@@ -347,7 +348,8 @@ T = linearize('R7014E_QuadTankSim_LQG', io);
 
 T = d2c(T, 'tustin');
 
-[s, w] = sigma(w_I * T);
+w = logspace(-3, 3, 100);
+[s, w] = sigma(w_I * T, w);
 
 figure;
 s1 = squeeze(s(1,:,:));
@@ -357,5 +359,3 @@ xlabel('\omega (rad/s)')
 ylabel('\sigma_{max}(w_I(i\omega)T(i\omega))')
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 20)
 grid on
-
-max(h_hat1+h_0, 0)
