@@ -5,6 +5,8 @@ Ao = 0.15;
 %Ao_2 = 0.154;
 a_1 = 0.15025;
 a_2 = 0.15615;
+height_limit = 15.5;
+height_safe = 0.9 * height_limit;
 
 g = 981;
 Gain = 4; % Used for linearization 
@@ -71,13 +73,40 @@ Cd = C;
 Dd = D;
 
 % Measurment Disturbance
-variance = 1e-5;
-disturbance_variance = 1e-4;
+variance = 1e-5; % real
+%variance = 1e-8; % fake
+disturbance_variance = 1e-5;
 
 % Kalman Filter gain with disturbance
 Q = [variance 0 0; 
      0 variance 0;
      0 0 disturbance_variance];
+%R = 1e1 * disturbance_variance / variance;
 R = 1;
+R_2d = diag([1, 1]);
 
 % [K_dist, P_dist] = dlqe(Ad, eye(size(Ad)), Cd, Q, R);
+
+% PID gains
+zeta = 1;
+T_s_ol = 300;
+T_s_cl = T_s_ol/4;
+omega_n = 4/(zeta*T_s_cl);
+
+% Kp = omega_n^2;
+% Ki = 0.00005;
+% Kd = 2*zeta*omega_n;
+
+Kp = omega_n^2 * (1 + 20*zeta^2);
+Ki = 10 * zeta * omega_n^3;
+Kd = 12 * zeta * omega_n;
+N = 1;
+
+% ref input
+tau = T_s_cl/2;
+
+% sliding mode
+k = 0.1;
+lambda = 0.04;
+phi = 0.1;
+
